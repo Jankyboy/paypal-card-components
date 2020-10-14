@@ -1,32 +1,33 @@
-'use strict';
+"use strict";
 
-var assign = require('../../lib/assign').assign;
-var Destructor = require('../../lib/destructor');
-var classlist = require('../../lib/classlist');
-var iFramer = require('@braintree/iframer');
-var Bus = require('../../lib/bus');
-var BraintreeError = require('../../lib/braintree-error');
-var composeUrl = require('./compose-url');
-var constants = require('../shared/constants');
-var errors = require('../shared/errors');
-var INTEGRATION_TIMEOUT_MS = require('../../lib/constants').INTEGRATION_TIMEOUT_MS;
-var uuid = require('../../lib/vendor/uuid');
-var findParentTags = require('../shared/find-parent-tags');
-var browserDetection = require('../shared/browser-detection');
+var assign = require("../../lib/assign").assign;
+var Destructor = require("../../lib/destructor");
+var classlist = require("../../lib/classlist");
+var iFramer = require("@braintree/iframer");
+var Bus = require("../../lib/bus");
+var BraintreeError = require("../../lib/braintree-error");
+var composeUrl = require("./compose-url");
+var constants = require("../shared/constants");
+var errors = require("../shared/errors");
+var INTEGRATION_TIMEOUT_MS = require("../../lib/constants")
+  .INTEGRATION_TIMEOUT_MS;
+var uuid = require("../../lib/vendor/uuid");
+var findParentTags = require("../shared/find-parent-tags");
+var browserDetection = require("../shared/browser-detection");
 var events = constants.events;
-var EventEmitter = require('../../lib/event-emitter');
-var injectFrame = require('./inject-frame');
-var analytics = require('../../lib/analytics');
+var EventEmitter = require("../../lib/event-emitter");
+var injectFrame = require("./inject-frame");
+var analytics = require("../../lib/analytics");
 var whitelistedFields = constants.whitelistedFields;
-var methods = require('../../lib/methods');
-var convertMethodsToError = require('../../lib/convert-methods-to-error');
-var sharedErrors = require('../../lib/errors');
-var getCardTypes = require('credit-card-type');
-var applyIframeSrc = require('../../lib/apply-iframe-src');
-var attributeValidationError = require('./attribute-validation-error');
-var useMin = require('../../lib/use-min');
-var Promise = require('../../lib/promise');
-var wrapPromise = require('@braintree/wrap-promise');
+var methods = require("../../lib/methods");
+var convertMethodsToError = require("../../lib/convert-methods-to-error");
+var sharedErrors = require("../../lib/errors");
+var getCardTypes = require("credit-card-type");
+var applyIframeSrc = require("../../lib/apply-iframe-src");
+var attributeValidationError = require("./attribute-validation-error");
+var useMin = require("../../lib/use-min");
+var Promise = require("../../lib/promise");
+var wrapPromise = require("@braintree/wrap-promise");
 var VERSION = "3.32.0-payments-sdk-dev";
 
 /**
@@ -255,17 +256,26 @@ function createInputEventHandler(fields) {
 
     field = merchantPayload.fields[emittedBy];
 
-    if (eventData.type === 'blur') {
+    if (eventData.type === "blur") {
       performBlurFixForIos(container);
     }
 
-    classlist.toggle(container, constants.externalClasses.FOCUSED, field.isFocused);
+    classlist.toggle(
+      container,
+      constants.externalClasses.FOCUSED,
+      field.isFocused
+    );
     classlist.toggle(container, constants.externalClasses.VALID, field.isValid);
-    classlist.toggle(container, constants.externalClasses.INVALID, !field.isPotentiallyValid);
+    classlist.toggle(
+      container,
+      constants.externalClasses.INVALID,
+      !field.isPotentiallyValid
+    );
 
-    this._state = { // eslint-disable-line no-invalid-this
+    this._state = {
+      // eslint-disable-line no-invalid-this
       cards: merchantPayload.cards,
-      fields: merchantPayload.fields
+      fields: merchantPayload.fields,
     };
 
     this._emit(eventData.type, merchantPayload); // eslint-disable-line no-invalid-this
@@ -285,19 +295,19 @@ function performBlurFixForIos(container) {
   }
 
   if (document.activeElement === document.body) {
-    hiddenInput = container.querySelector('input');
+    hiddenInput = container.querySelector("input");
 
     if (!hiddenInput) {
-      hiddenInput = document.createElement('input');
+      hiddenInput = document.createElement("input");
 
-      hiddenInput.type = 'button';
-      hiddenInput.style.height = '0px';
-      hiddenInput.style.width = '0px';
-      hiddenInput.style.opacity = '0';
-      hiddenInput.style.padding = '0';
-      hiddenInput.style.position = 'absolute';
-      hiddenInput.style.left = '-200%';
-      hiddenInput.style.top = '0px';
+      hiddenInput.type = "button";
+      hiddenInput.style.height = "0px";
+      hiddenInput.style.width = "0px";
+      hiddenInput.style.opacity = "0";
+      hiddenInput.style.padding = "0";
+      hiddenInput.style.position = "absolute";
+      hiddenInput.style.left = "-200%";
+      hiddenInput.style.top = "0px";
 
       container.insertBefore(hiddenInput, container.firstChild);
     }
@@ -327,7 +337,7 @@ function HostedFields(options) {
     throw new BraintreeError({
       type: sharedErrors.INSTANTIATION_OPTION_REQUIRED.type,
       code: sharedErrors.INSTANTIATION_OPTION_REQUIRED.code,
-      message: 'options.fields is required when instantiating Hosted Fields.'
+      message: "options.fields is required when instantiating Hosted Fields.",
     });
   }
 
@@ -338,12 +348,12 @@ function HostedFields(options) {
   this._fields = fields;
   this._state = {
     fields: {},
-    cards: getCardTypes('')
+    cards: getCardTypes(""),
   };
 
   this._bus = new Bus({
     channel: componentId,
-    merchantUrl: location.href
+    merchantUrl: location.href,
   });
 
   this._destructor.registerFunctionForTeardown(function () {
@@ -354,130 +364,144 @@ function HostedFields(options) {
 
   // analytics.sendEvent(this._client, 'custom.hosted-fields.initialized');
 
-  Object.keys(options.fields).forEach(function (key) {
-    var field, container, frame;
+  Object.keys(options.fields).forEach(
+    function (key) {
+      var field, container, frame;
 
-    if (!constants.whitelistedFields.hasOwnProperty(key)) {
-      throw new BraintreeError({
-        type: errors.HOSTED_FIELDS_INVALID_FIELD_KEY.type,
-        code: errors.HOSTED_FIELDS_INVALID_FIELD_KEY.code,
-        message: '"' + key + '" is not a valid field.'
+      if (!constants.whitelistedFields.hasOwnProperty(key)) {
+        throw new BraintreeError({
+          type: errors.HOSTED_FIELDS_INVALID_FIELD_KEY.type,
+          code: errors.HOSTED_FIELDS_INVALID_FIELD_KEY.code,
+          message: '"' + key + '" is not a valid field.',
+        });
+      }
+
+      field = options.fields[key];
+
+      container = document.querySelector(field.selector);
+
+      if (!container) {
+        throw new BraintreeError({
+          type: errors.HOSTED_FIELDS_INVALID_FIELD_SELECTOR.type,
+          code: errors.HOSTED_FIELDS_INVALID_FIELD_SELECTOR.code,
+          message: errors.HOSTED_FIELDS_INVALID_FIELD_SELECTOR.message,
+          details: {
+            fieldSelector: field.selector,
+            fieldKey: key,
+          },
+        });
+      } else if (container.querySelector('iframe[name^="braintree-"]')) {
+        throw new BraintreeError({
+          type: errors.HOSTED_FIELDS_FIELD_DUPLICATE_IFRAME.type,
+          code: errors.HOSTED_FIELDS_FIELD_DUPLICATE_IFRAME.code,
+          message: errors.HOSTED_FIELDS_FIELD_DUPLICATE_IFRAME.message,
+          details: {
+            fieldSelector: field.selector,
+            fieldKey: key,
+          },
+        });
+      }
+
+      if (field.maxlength && typeof field.maxlength !== "number") {
+        throw new BraintreeError({
+          type: errors.HOSTED_FIELDS_FIELD_PROPERTY_INVALID.type,
+          code: errors.HOSTED_FIELDS_FIELD_PROPERTY_INVALID.code,
+          message: "The value for maxlength must be a number.",
+          details: {
+            fieldKey: key,
+          },
+        });
+      }
+
+      if (field.minlength && typeof field.minlength !== "number") {
+        throw new BraintreeError({
+          type: errors.HOSTED_FIELDS_FIELD_PROPERTY_INVALID.type,
+          code: errors.HOSTED_FIELDS_FIELD_PROPERTY_INVALID.code,
+          message: "The value for minlength must be a number.",
+          details: {
+            fieldKey: key,
+          },
+        });
+      }
+
+      frame = iFramer({
+        type: key,
+        name: "braintree-hosted-field-" + key,
+        style: constants.defaultIFrameStyle,
       });
-    }
 
-    field = options.fields[key];
+      this._injectedNodes = this._injectedNodes.concat(
+        injectFrame(frame, container)
+      );
+      this._setupLabelFocus(key, container);
+      fields[key] = {
+        frameElement: frame,
+        containerElement: container,
+      };
+      fieldCount++;
 
-    container = document.querySelector(field.selector);
+      this._state.fields[key] = {
+        isEmpty: true,
+        isValid: false,
+        isPotentiallyValid: true,
+        isFocused: false,
+        container: container,
+      };
 
-    if (!container) {
-      throw new BraintreeError({
-        type: errors.HOSTED_FIELDS_INVALID_FIELD_SELECTOR.type,
-        code: errors.HOSTED_FIELDS_INVALID_FIELD_SELECTOR.code,
-        message: errors.HOSTED_FIELDS_INVALID_FIELD_SELECTOR.message,
-        details: {
-          fieldSelector: field.selector,
-          fieldKey: key
-        }
-      });
-    } else if (container.querySelector('iframe[name^="braintree-"]')) {
-      throw new BraintreeError({
-        type: errors.HOSTED_FIELDS_FIELD_DUPLICATE_IFRAME.type,
-        code: errors.HOSTED_FIELDS_FIELD_DUPLICATE_IFRAME.code,
-        message: errors.HOSTED_FIELDS_FIELD_DUPLICATE_IFRAME.message,
-        details: {
-          fieldSelector: field.selector,
-          fieldKey: key
-        }
-      });
-    }
-
-    if (field.maxlength && typeof field.maxlength !== 'number') {
-      throw new BraintreeError({
-        type: errors.HOSTED_FIELDS_FIELD_PROPERTY_INVALID.type,
-        code: errors.HOSTED_FIELDS_FIELD_PROPERTY_INVALID.code,
-        message: 'The value for maxlength must be a number.',
-        details: {
-          fieldKey: key
-        }
-      });
-    }
-
-    if (field.minlength && typeof field.minlength !== 'number') {
-      throw new BraintreeError({
-        type: errors.HOSTED_FIELDS_FIELD_PROPERTY_INVALID.type,
-        code: errors.HOSTED_FIELDS_FIELD_PROPERTY_INVALID.code,
-        message: 'The value for minlength must be a number.',
-        details: {
-          fieldKey: key
-        }
-      });
-    }
-
-    frame = iFramer({
-      type: key,
-      name: 'braintree-hosted-field-' + key,
-      style: constants.defaultIFrameStyle
-    });
-
-    this._injectedNodes = this._injectedNodes.concat(injectFrame(frame, container));
-    this._setupLabelFocus(key, container);
-    fields[key] = {
-      frameElement: frame,
-      containerElement: container
-    };
-    fieldCount++;
-
-    this._state.fields[key] = {
-      isEmpty: true,
-      isValid: false,
-      isPotentiallyValid: true,
-      isFocused: false,
-      container: container
-    };
-
-    applyIframeSrc(frame, composeUrl(clientConfig.gatewayConfiguration.assetsUrl, componentId, clientConfig.isDebug));
-  }.bind(this));
+      applyIframeSrc(
+        frame,
+        composeUrl(
+          clientConfig.gatewayConfiguration.assetsUrl,
+          componentId,
+          clientConfig.isDebug
+        )
+      );
+    }.bind(this)
+  );
 
   // TODO rejecting unsupported cards should be the default behavior after the next major revision
   if (options.fields.number && options.fields.number.rejectUnsupportedCards) {
-    internalOptions.supportedCardTypes = clientConfig.gatewayConfiguration.creditCards.supportedCardTypes;
+    internalOptions.supportedCardTypes =
+      clientConfig.gatewayConfiguration.creditCards.supportedCardTypes;
   }
 
   initializePromises = [
-    this._waitForIframeInputsToBeReady(fieldCount, assign({}, options, internalOptions)),
-    this._setupTokenizationFrame(componentId, options)
+    this._waitForIframeInputsToBeReady(
+      fieldCount,
+      assign({}, options, internalOptions)
+    ),
+    this._setupTokenizationFrame(componentId, options),
   ];
 
   failureTimeout = setTimeout(function () {
     // analytics.sendEvent(self._client, 'custom.hosted-fields.load.timed-out');
-    self._emit('timeout');
+    self._emit("timeout");
   }, INTEGRATION_TIMEOUT_MS);
 
   Promise.all(initializePromises).then(function () {
     clearTimeout(failureTimeout);
-    self._emit('ready');
+    self._emit("ready");
   });
 
-  this._bus.on('INSTALLMENTS_REQUESTED', function (data, reply) {
-    Promise.resolve().then(function () {
-      return options.installments.onInstallmentsRequested();
-    }).then(function (data) {
-      reply(data);
-    });
+  this._bus.on("INSTALLMENTS_REQUESTED", function (data, reply) {
+    Promise.resolve()
+      .then(function () {
+        return options.installments.onInstallmentsRequested();
+      })
+      .then(function (data) {
+        reply(data);
+      });
   });
-  this._bus.on('INSTALLMENTS_AVAILABLE', function (data) {
+  this._bus.on("INSTALLMENTS_AVAILABLE", function (data) {
     options.installments.onInstallmentsAvailable(data);
   });
-  this._bus.on('INSTALLMENTS_ERROR', function(installmentsLookupError) {
+  this._bus.on("INSTALLMENTS_ERROR", function (installmentsLookupError) {
     if (options.installments.onInstalmentsError) {
       options.installments.onInstallmentsError(installmentsLookupError);
     }
   });
 
-  this._bus.on(
-    events.INPUT_EVENT,
-    createInputEventHandler(fields).bind(this)
-  );
+  this._bus.on(events.INPUT_EVENT, createInputEventHandler(fields).bind(this));
 
   this._destructor.registerFunctionForTeardown(function () {
     var j, node, parent;
@@ -502,14 +526,16 @@ function HostedFields(options) {
   });
 
   this._destructor.registerFunctionForTeardown(function () {
-    var methodNames = methods(HostedFields.prototype).concat(methods(EventEmitter.prototype));
+    var methodNames = methods(HostedFields.prototype).concat(
+      methods(EventEmitter.prototype)
+    );
 
     convertMethodsToError(self, methodNames);
   });
 }
 
 HostedFields.prototype = Object.create(EventEmitter.prototype, {
-  constructor: HostedFields
+  constructor: HostedFields,
 });
 
 HostedFields.prototype._setupLabelFocus = function (type, container) {
@@ -517,69 +543,99 @@ HostedFields.prototype._setupLabelFocus = function (type, container) {
   var shouldSkipLabelFocus = browserDetection.isIos();
   var bus = this._bus;
 
-  if (shouldSkipLabelFocus) { return; }
-  if (container.id == null) { return; }
+  if (shouldSkipLabelFocus) {
+    return;
+  }
+  if (container.id == null) {
+    return;
+  }
 
   function triggerFocus() {
     bus.emit(events.TRIGGER_INPUT_FOCUS, type);
   }
 
-  labels = Array.prototype.slice.call(document.querySelectorAll('label[for="' + container.id + '"]'));
-  labels = labels.concat(findParentTags(container, 'label'));
+  labels = Array.prototype.slice.call(
+    document.querySelectorAll('label[for="' + container.id + '"]')
+  );
+  labels = labels.concat(findParentTags(container, "label"));
 
   for (i = 0; i < labels.length; i++) {
-    labels[i].addEventListener('click', triggerFocus, false);
+    labels[i].addEventListener("click", triggerFocus, false);
   }
 
   this._destructor.registerFunctionForTeardown(function () {
     for (i = 0; i < labels.length; i++) {
-      labels[i].removeEventListener('click', triggerFocus, false);
+      labels[i].removeEventListener("click", triggerFocus, false);
     }
   });
 };
 
-HostedFields.prototype._waitForIframeInputsToBeReady = function (fieldCount, options) {
+HostedFields.prototype._waitForIframeInputsToBeReady = function (
+  fieldCount,
+  options
+) {
   var installments = options.installments;
 
-  return new Promise(function (resolve) {
-    this._bus.on(events.FRAME_READY, function (reply) {
-      fieldCount--;
-      if (fieldCount === 0) {
-        if (installments) {
-          options.listenForInstallments = Boolean(installments.onInstallmentsRequested && installments.onInstallmentsAvailable);
+  return new Promise(
+    function (resolve) {
+      this._bus.on(events.FRAME_READY, function (reply) {
+        fieldCount--;
+        if (fieldCount === 0) {
+          if (installments) {
+            options.listenForInstallments = Boolean(
+              installments.onInstallmentsRequested &&
+                installments.onInstallmentsAvailable
+            );
+          }
+          reply(options);
+          resolve();
         }
-        reply(options);
-        resolve();
-      }
-    });
-  }.bind(this));
+      });
+    }.bind(this)
+  );
 };
 
-HostedFields.prototype._setupTokenizationFrame = function (componentId, options) {
+HostedFields.prototype._setupTokenizationFrame = function (
+  componentId,
+  options
+) {
   var tokenizationFramePath;
   var clientConfig = this._client.getConfiguration();
   var assetsUrl = clientConfig.gatewayConfiguration.assetsUrl;
 
   if (options.paymentsSdk) {
-    tokenizationFramePath = 'hosted-fields-payments-sdk-tokenization';
+    tokenizationFramePath = "hosted-fields-payments-sdk-tokenization";
   } else {
-    tokenizationFramePath = 'hosted-fields-tokenization';
+    tokenizationFramePath = "hosted-fields-tokenization";
   }
 
   this._tokenizationFrame = iFramer({
-    name: 'hosted-fields-tokenization-frame_' + componentId,
-    src: assetsUrl + '/web/' + VERSION + '/html/' + tokenizationFramePath + '-frame' + useMin(clientConfig.isDebug) + '.html',
+    name: "hosted-fields-tokenization-frame_" + componentId,
+    src:
+      assetsUrl +
+      "/web/" +
+      VERSION +
+      "/html/" +
+      tokenizationFramePath +
+      "-frame" +
+      useMin(clientConfig.isDebug) +
+      ".html",
     height: 0,
-    width: 0
+    width: 0,
   });
 
-  return new Promise(function (resolve) {
-    this._bus.on(Bus.events.CONFIGURATION_REQUEST, function (reply) {
-      reply(this._client);
-      resolve();
-    }.bind(this));
-    document.body.appendChild(this._tokenizationFrame);
-  }.bind(this));
+  return new Promise(
+    function (resolve) {
+      this._bus.on(
+        Bus.events.CONFIGURATION_REQUEST,
+        function (reply) {
+          reply(this._client);
+          resolve();
+        }.bind(this)
+      );
+      document.body.appendChild(this._tokenizationFrame);
+    }.bind(this)
+  );
 };
 
 HostedFields.prototype._getBusChannel = function () {
@@ -783,13 +839,19 @@ HostedFields.prototype.addClass = function (field, classname) {
     err = new BraintreeError({
       type: errors.HOSTED_FIELDS_FIELD_INVALID.type,
       code: errors.HOSTED_FIELDS_FIELD_INVALID.code,
-      message: '"' + field + '" is not a valid field. You must use a valid field option when adding a class.'
+      message:
+        '"' +
+        field +
+        '" is not a valid field. You must use a valid field option when adding a class.',
     });
   } else if (!this._fields.hasOwnProperty(field)) {
     err = new BraintreeError({
       type: errors.HOSTED_FIELDS_FIELD_NOT_PRESENT.type,
       code: errors.HOSTED_FIELDS_FIELD_NOT_PRESENT.code,
-      message: 'Cannot add class to "' + field + '" field because it is not part of the current Hosted Fields options.'
+      message:
+        'Cannot add class to "' +
+        field +
+        '" field because it is not part of the current Hosted Fields options.',
     });
   } else {
     this._bus.emit(events.ADD_CLASS, field, classname);
@@ -828,13 +890,19 @@ HostedFields.prototype.removeClass = function (field, classname) {
     err = new BraintreeError({
       type: errors.HOSTED_FIELDS_FIELD_INVALID.type,
       code: errors.HOSTED_FIELDS_FIELD_INVALID.code,
-      message: '"' + field + '" is not a valid field. You must use a valid field option when removing a class.'
+      message:
+        '"' +
+        field +
+        '" is not a valid field. You must use a valid field option when removing a class.',
     });
   } else if (!this._fields.hasOwnProperty(field)) {
     err = new BraintreeError({
       type: errors.HOSTED_FIELDS_FIELD_NOT_PRESENT.type,
       code: errors.HOSTED_FIELDS_FIELD_NOT_PRESENT.code,
-      message: 'Cannot remove class from "' + field + '" field because it is not part of the current Hosted Fields options.'
+      message:
+        'Cannot remove class from "' +
+        field +
+        '" field because it is not part of the current Hosted Fields options.',
     });
   } else {
     this._bus.emit(events.REMOVE_CLASS, field, classname);
@@ -889,13 +957,19 @@ HostedFields.prototype.setAttribute = function (options) {
     err = new BraintreeError({
       type: errors.HOSTED_FIELDS_FIELD_INVALID.type,
       code: errors.HOSTED_FIELDS_FIELD_INVALID.code,
-      message: '"' + options.field + '" is not a valid field. You must use a valid field option when setting an attribute.'
+      message:
+        '"' +
+        options.field +
+        '" is not a valid field. You must use a valid field option when setting an attribute.',
     });
   } else if (!this._fields.hasOwnProperty(options.field)) {
     err = new BraintreeError({
       type: errors.HOSTED_FIELDS_FIELD_NOT_PRESENT.type,
       code: errors.HOSTED_FIELDS_FIELD_NOT_PRESENT.code,
-      message: 'Cannot set attribute for "' + options.field + '" field because it is not part of the current Hosted Fields options.'
+      message:
+        'Cannot set attribute for "' +
+        options.field +
+        '" field because it is not part of the current Hosted Fields options.',
     });
   } else {
     attributeErr = attributeValidationError(options.attribute, options.value);
@@ -903,7 +977,12 @@ HostedFields.prototype.setAttribute = function (options) {
     if (attributeErr) {
       err = attributeErr;
     } else {
-      this._bus.emit(events.SET_ATTRIBUTE, options.field, options.attribute, options.value);
+      this._bus.emit(
+        events.SET_ATTRIBUTE,
+        options.field,
+        options.attribute,
+        options.value
+      );
     }
   }
 
@@ -968,13 +1047,19 @@ HostedFields.prototype.removeAttribute = function (options) {
     err = new BraintreeError({
       type: errors.HOSTED_FIELDS_FIELD_INVALID.type,
       code: errors.HOSTED_FIELDS_FIELD_INVALID.code,
-      message: '"' + options.field + '" is not a valid field. You must use a valid field option when removing an attribute.'
+      message:
+        '"' +
+        options.field +
+        '" is not a valid field. You must use a valid field option when removing an attribute.',
     });
   } else if (!this._fields.hasOwnProperty(options.field)) {
     err = new BraintreeError({
       type: errors.HOSTED_FIELDS_FIELD_NOT_PRESENT.type,
       code: errors.HOSTED_FIELDS_FIELD_NOT_PRESENT.code,
-      message: 'Cannot remove attribute for "' + options.field + '" field because it is not part of the current Hosted Fields options.'
+      message:
+        'Cannot remove attribute for "' +
+        options.field +
+        '" field because it is not part of the current Hosted Fields options.',
     });
   } else {
     attributeErr = attributeValidationError(options.attribute);
@@ -1006,8 +1091,8 @@ HostedFields.prototype.removeAttribute = function (options) {
 HostedFields.prototype.setPlaceholder = function (field, placeholder) {
   return this.setAttribute({
     field: field,
-    attribute: 'placeholder',
-    value: placeholder
+    attribute: "placeholder",
+    value: placeholder,
   });
 };
 
@@ -1036,13 +1121,19 @@ HostedFields.prototype.clear = function (field) {
     err = new BraintreeError({
       type: errors.HOSTED_FIELDS_FIELD_INVALID.type,
       code: errors.HOSTED_FIELDS_FIELD_INVALID.code,
-      message: '"' + field + '" is not a valid field. You must use a valid field option when clearing a field.'
+      message:
+        '"' +
+        field +
+        '" is not a valid field. You must use a valid field option when clearing a field.',
     });
   } else if (!this._fields.hasOwnProperty(field)) {
     err = new BraintreeError({
       type: errors.HOSTED_FIELDS_FIELD_NOT_PRESENT.type,
       code: errors.HOSTED_FIELDS_FIELD_NOT_PRESENT.code,
-      message: 'Cannot clear "' + field + '" field because it is not part of the current Hosted Fields options.'
+      message:
+        'Cannot clear "' +
+        field +
+        '" field because it is not part of the current Hosted Fields options.',
     });
   } else {
     this._bus.emit(events.CLEAR_FIELD, field);
@@ -1083,13 +1174,19 @@ HostedFields.prototype.focus = function (field) {
     err = new BraintreeError({
       type: errors.HOSTED_FIELDS_FIELD_INVALID.type,
       code: errors.HOSTED_FIELDS_FIELD_INVALID.code,
-      message: '"' + field + '" is not a valid field. You must use a valid field option when focusing a field.'
+      message:
+        '"' +
+        field +
+        '" is not a valid field. You must use a valid field option when focusing a field.',
     });
   } else if (!this._fields.hasOwnProperty(field)) {
     err = new BraintreeError({
       type: errors.HOSTED_FIELDS_FIELD_NOT_PRESENT.type,
       code: errors.HOSTED_FIELDS_FIELD_NOT_PRESENT.code,
-      message: 'Cannot focus "' + field + '" field because it is not part of the current Hosted Fields options.'
+      message:
+        'Cannot focus "' +
+        field +
+        '" field because it is not part of the current Hosted Fields options.',
     });
   } else {
     this._bus.emit(events.TRIGGER_INPUT_FOCUS, field);
